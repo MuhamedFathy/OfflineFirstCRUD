@@ -45,7 +45,7 @@ androidx-room-compiler = { group = "androidx.room", name = "room-compiler", vers
 dagger-hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 dagger-hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "hilt" }
 workManager = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "workManager" }
-workMultiProcess = { group = "androidx.work", name = " work-multiprocess", version.ref = "workManager" }
+workMultiProcess = { group = "androidx.work", name = "work-multiprocess", version.ref = "workManager" }
 hiltWorker = { group = "androidx.hilt", name = "hilt-work", version.ref = "hiltWork" }
 
 [bundles]
