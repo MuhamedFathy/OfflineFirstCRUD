@@ -11,11 +11,7 @@ import retrofit2.http.Path
 
 interface PostsAPI {
 
-    companion object {
-        const val POSTS = "posts"
-    }
-
-    @GET(POSTS)
+    @GET("posts")
     suspend fun getPosts(): Response<List<PostsResponse>>
 
     @POST("posts")
