@@ -52,7 +52,7 @@ class MainActivity : ComponentActivity() {
                                 )
                             },
                             navigationIcon = {
-                                if (navController.currentBackStackEntry?.destination?.route != NavRoutes.PostsScreen.route) {
+                                if (currentRoute != NavRoutes.PostsScreen.route) {
                                     IconButton(onClick = { navController.popBackStack() }) {
                                         Icon(
                                             Icons.AutoMirrored.Filled.ArrowBack,
@@ -64,7 +64,7 @@ class MainActivity : ComponentActivity() {
                         )
                     },
                     floatingActionButton = {
-                        if (navController.currentBackStackEntry?.destination?.route == NavRoutes.PostsScreen.route) {
+                        if (currentRoute == NavRoutes.PostsScreen.route) {
                             FloatingActionButton(
                                 onClick = { itemsCount += 1 }
                             ) {
