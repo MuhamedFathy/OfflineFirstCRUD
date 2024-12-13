@@ -13,8 +13,7 @@ import com.github.offlinefirstcrud.presentation.composable.PostsScreen
 fun AppNavHost(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
-    startDestination: String = NavRoutes.PostsScreen.route,
-    itemsCount: Int = 2
+    startDestination: String = NavRoutes.PostsScreen.route
 ) {
     NavHost(
         modifier = modifier,
@@ -23,7 +22,6 @@ fun AppNavHost(
     ) {
         composable(route = NavRoutes.PostsScreen.route) {
             PostsScreen(
-                count = itemsCount,
                 itemCallback = { navController.navigate(NavRoutes.PostDetailsScreen.route) }
             )
         }

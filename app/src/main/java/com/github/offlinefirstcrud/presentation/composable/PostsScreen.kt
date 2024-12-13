@@ -10,63 +10,134 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.Edit
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.github.offlinefirstcrud.domain.typealiases.Action
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.github.offlinefirstcrud.R
+import com.github.offlinefirstcrud.domain.typealiases.Consumer
+import com.github.offlinefirstcrud.presentation.activity.MainActivity
+import com.github.offlinefirstcrud.presentation.holder.DataHolder
 import com.github.offlinefirstcrud.presentation.theme.OfflineFirstCRUDTheme
+import com.github.offlinefirstcrud.presentation.viewmodel.uimodel.PostUiModel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PostsScreen(
-    count: Int = 2,
-    itemCallback: Action = {}
+    itemCallback: Consumer<Int> = {}
 ) {
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-    ) {
-        items(
-            count = count,
-            key = { index -> index }
-        ) { index ->
-            PostItem(
-                title = "Post Title",
-                content = if (index % 2 == 0) "Lorem ipsum dolor sit amet, consectetur adipiscing elit." else "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam non viverra eros. Nullam facilisis sapien at urna mattis, non sollicitudin enim imperdiet. Nunc vulputate enim sapien, nec fermentum risus laoreet at.",
-                itemCallback = itemCallback,
-                editCallback = {},
-                deleteCallback = {}
-            )
+    val context = LocalContext.current as MainActivity
+    val postsViewModel = context.postsViewModel
+    val postsState by postsViewModel.postsState.collectAsStateWithLifecycle()
 
-            if (index < count - 1) {
-                HorizontalDivider(modifier = Modifier.fillMaxWidth(), thickness = 1.dp)
+    val refreshScope = rememberCoroutineScope()
+    var refreshing by remember { mutableStateOf(false) }
+    val refreshState = rememberPullToRefreshState()
+    val listState = rememberLazyListState()
+
+    LaunchedEffect(key1 = Unit) {
+        postsViewModel.loadPosts()
+    }
+
+    LaunchedEffect(key1 = refreshing) {
+        if (!refreshing) listState.animateScrollToItem(0)
+    }
+
+    PullToRefreshBox(
+        modifier = Modifier
+            .fillMaxSize(),
+        state = refreshState,
+        isRefreshing = refreshing,
+        onRefresh = {
+            refreshScope.launch {
+                refreshing = true
+                postsViewModel.loadPosts(isRefresh = true)
+                delay(1000)
+                refreshing = false
+            }
+        },
+        contentAlignment = Alignment.Center
+    ) {
+        when (postsState) {
+            is DataHolder.Loading -> {
+                CircularProgressIndicator(modifier = Modifier.size(60.dp))
+            }
+
+            is DataHolder.Success -> {
+                val posts = (postsState as DataHolder.Success).data
+
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    state = listState
+                ) {
+                    items(
+                        items = posts,
+                        key = { post -> post.id }
+                    ) { post ->
+                        PostItem(
+                            postUiModel = post,
+                            itemCallback = itemCallback,
+                            editCallback = {},
+                            deleteCallback = { postsViewModel.deletePost(it) }
+                        )
+
+                        HorizontalDivider(modifier = Modifier.fillMaxWidth(), thickness = 1.dp)
+                    }
+
+                    item { Spacer(modifier = Modifier.height(100.dp)) }
+                }
+            }
+
+            else -> {
+                Text(
+                    modifier = Modifier.padding(40.dp),
+                    text = stringResource(R.string.general_error_title),
+                    style = MaterialTheme.typography.titleLarge,
+                    textAlign = TextAlign.Center
+                )
             }
         }
-
-        item { Spacer(modifier = Modifier.height(100.dp)) }
     }
 }
 
 @Composable
 fun LazyItemScope.PostItem(
-    title: String,
-    content: String,
-    itemCallback: Action,
-    editCallback: Action,
-    deleteCallback: Action
+    postUiModel: PostUiModel,
+    itemCallback: Consumer<Int>,
+    editCallback: Consumer<Int>,
+    deleteCallback: Consumer<Int>
 ) {
     Column(
         modifier = Modifier
@@ -74,11 +145,11 @@ fun LazyItemScope.PostItem(
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = ripple()
-            ) { itemCallback() }
+            ) { itemCallback(postUiModel.id) }
             .padding(16.dp)
     ) {
         Text(
-            text = title,
+            text = postUiModel.title,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             style = MaterialTheme.typography.titleLarge
@@ -87,7 +158,7 @@ fun LazyItemScope.PostItem(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = content,
+            text = postUiModel.body,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
             style = MaterialTheme.typography.bodyLarge
@@ -101,7 +172,7 @@ fun LazyItemScope.PostItem(
             horizontalArrangement = Arrangement.End
         ) {
             IconButton(
-                onClick = { /* Handle edit click */ }
+                onClick = { editCallback(postUiModel.id) }
             ) {
                 Icon(
                     imageVector = Icons.TwoTone.Edit,
@@ -111,7 +182,7 @@ fun LazyItemScope.PostItem(
             }
 
             IconButton(
-                onClick = { /* Handle delete click */ }
+                onClick = { deleteCallback(postUiModel.id) }
             ) {
                 Icon(
                     imageVector = Icons.TwoTone.Delete,

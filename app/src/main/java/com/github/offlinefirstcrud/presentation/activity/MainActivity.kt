@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -17,9 +18,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -28,9 +26,15 @@ import com.github.offlinefirstcrud.presentation.composable.navigation.AppNavHost
 import com.github.offlinefirstcrud.presentation.composable.navigation.NavRoutes
 import com.github.offlinefirstcrud.presentation.composable.navigation.getScreenTitle
 import com.github.offlinefirstcrud.presentation.theme.OfflineFirstCRUDTheme
+import com.github.offlinefirstcrud.presentation.viewmodel.PostsViewModel
+import dagger.hilt.android.AndroidEntryPoint
 
 @OptIn(ExperimentalMaterial3Api::class)
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    val postsViewModel by viewModels<PostsViewModel>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -38,7 +42,6 @@ class MainActivity : ComponentActivity() {
             val navController = rememberNavController()
             val backStackEntry by navController.currentBackStackEntryAsState()
             val currentRoute = backStackEntry?.destination?.route
-            var itemsCount by remember { mutableIntStateOf(2) }
 
             OfflineFirstCRUDTheme {
                 Scaffold(
@@ -66,7 +69,9 @@ class MainActivity : ComponentActivity() {
                     floatingActionButton = {
                         if (currentRoute == NavRoutes.PostsScreen.route) {
                             FloatingActionButton(
-                                onClick = { itemsCount += 1 }
+                                onClick = {
+
+                                }
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Add,
@@ -78,8 +83,7 @@ class MainActivity : ComponentActivity() {
                 ) { contentPadding ->
                     AppNavHost(
                         modifier = Modifier.padding(contentPadding),
-                        navController = navController,
-                        itemsCount = itemsCount
+                        navController = navController
                     )
                 }
             }
