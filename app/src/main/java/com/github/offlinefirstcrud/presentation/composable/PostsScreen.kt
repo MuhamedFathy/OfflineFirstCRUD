@@ -47,6 +47,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.github.offlinefirstcrud.R
 import com.github.offlinefirstcrud.domain.typealiases.Consumer
 import com.github.offlinefirstcrud.presentation.activity.MainActivity
+import com.github.offlinefirstcrud.presentation.composable.navigation.NavRoutes
 import com.github.offlinefirstcrud.presentation.holder.DataHolder
 import com.github.offlinefirstcrud.presentation.theme.OfflineFirstCRUDTheme
 import com.github.offlinefirstcrud.presentation.viewmodel.uimodel.PostUiModel
@@ -56,11 +57,13 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PostsScreen(
-    itemCallback: Consumer<Int> = {}
+    itemCallback: Consumer<PostUiModel> = {},
+    editCallback: Consumer<PostUiModel> = {}
 ) {
     val context = LocalContext.current as MainActivity
     val postsViewModel = context.postsViewModel
     val postsState by postsViewModel.postsState.collectAsStateWithLifecycle()
+    val scrollToBottom by postsViewModel.postAdded.collectAsStateWithLifecycle()
 
     val refreshScope = rememberCoroutineScope()
     var refreshing by remember { mutableStateOf(false) }
@@ -71,8 +74,8 @@ fun PostsScreen(
         postsViewModel.loadPosts()
     }
 
-    LaunchedEffect(key1 = refreshing) {
-        if (!refreshing) listState.animateScrollToItem(0)
+    LaunchedEffect(key1 = scrollToBottom) {
+        if (scrollToBottom) listState.scrollToItem(listState.layoutInfo.totalItemsCount)
     }
 
     PullToRefreshBox(
@@ -109,7 +112,7 @@ fun PostsScreen(
                         PostItem(
                             postUiModel = post,
                             itemCallback = itemCallback,
-                            editCallback = {},
+                            editCallback = { editCallback(it) },
                             deleteCallback = { postsViewModel.deletePost(it) }
                         )
 
@@ -135,8 +138,8 @@ fun PostsScreen(
 @Composable
 fun LazyItemScope.PostItem(
     postUiModel: PostUiModel,
-    itemCallback: Consumer<Int>,
-    editCallback: Consumer<Int>,
+    itemCallback: Consumer<PostUiModel>,
+    editCallback: Consumer<PostUiModel>,
     deleteCallback: Consumer<Int>
 ) {
     Column(
@@ -145,7 +148,7 @@ fun LazyItemScope.PostItem(
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = ripple()
-            ) { itemCallback(postUiModel.id) }
+            ) { itemCallback(postUiModel) }
             .padding(16.dp)
     ) {
         Text(
@@ -172,7 +175,7 @@ fun LazyItemScope.PostItem(
             horizontalArrangement = Arrangement.End
         ) {
             IconButton(
-                onClick = { editCallback(postUiModel.id) }
+                onClick = { editCallback(postUiModel) }
             ) {
                 Icon(
                     imageVector = Icons.TwoTone.Edit,

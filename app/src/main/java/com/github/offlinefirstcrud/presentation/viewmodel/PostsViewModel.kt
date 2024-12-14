@@ -11,6 +11,7 @@ import com.github.offlinefirstcrud.presentation.viewmodel.uimodel.PostUiModel
 import com.github.offlinefirstcrud.presentation.viewmodel.uimodel.toEntity
 import com.github.offlinefirstcrud.presentation.viewmodel.uimodel.toUIModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
@@ -28,6 +29,10 @@ class PostsViewModel @Inject constructor(
     private val _postsState = MutableStateFlow<DataHolder<List<PostUiModel>>>(value = DataHolder.Loading)
     val postsState = _postsState.asStateFlow()
 
+    var postAdded = MutableStateFlow(false)
+
+    var currentPostsCount = 0
+
     private var hasLoadedData = false
 
     fun loadPosts(isRefresh: Boolean = false) {
@@ -42,6 +47,7 @@ class PostsViewModel @Inject constructor(
                 }
                 .collect { posts ->
                     _postsState.value = DataHolder.Success(posts.map { postEntity -> postEntity.toUIModel() })
+                    currentPostsCount = posts.size
                 }
         }
     }
@@ -54,18 +60,23 @@ class PostsViewModel @Inject constructor(
                 }
                 .collect { posts ->
                     _postsState.value = DataHolder.Success(posts.map { postEntity -> postEntity.toUIModel() })
+                    currentPostsCount = posts.size
+                    postAdded.value = true
+                    delay(300)
+                    postAdded.value = false
                 }
         }
     }
 
-    fun updatePost(postId: Int, post: PostUiModel) {
+    fun updatePost(post: PostUiModel) {
         viewModelScope.launch {
-            updatePostUseCase.build(postId, post.toEntity())
+            updatePostUseCase.build(post.toEntity())
                 .catch { throwable ->
                     _postsState.value = DataHolder.Fail(throwable)
                 }
                 .collect { posts ->
                     _postsState.value = DataHolder.Success(posts.map { postEntity -> postEntity.toUIModel() })
+                    currentPostsCount = posts.size
                 }
         }
     }
@@ -78,6 +89,7 @@ class PostsViewModel @Inject constructor(
                 }
                 .collect { posts ->
                     _postsState.value = DataHolder.Success(posts.map { postEntity -> postEntity.toUIModel() })
+                    currentPostsCount = posts.size
                 }
         }
     }

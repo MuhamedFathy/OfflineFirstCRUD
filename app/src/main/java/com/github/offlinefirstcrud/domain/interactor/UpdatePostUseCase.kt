@@ -8,5 +8,5 @@ class UpdatePostUseCase @Inject constructor(
     private val repository: PostsRepository
 ) {
 
-    suspend fun build(postId: Int, postEntity: PostEntity) = repository.updatePost(postId, postEntity)
+    suspend fun build(postEntity: PostEntity) = repository.updatePost(postEntity)
 }

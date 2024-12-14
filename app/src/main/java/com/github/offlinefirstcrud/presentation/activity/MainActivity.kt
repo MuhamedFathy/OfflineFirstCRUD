@@ -69,9 +69,7 @@ class MainActivity : ComponentActivity() {
                     floatingActionButton = {
                         if (currentRoute == NavRoutes.PostsScreen.route) {
                             FloatingActionButton(
-                                onClick = {
-
-                                }
+                                onClick = { navController.navigate("${NavRoutes.CreatePostScreen.route}/${-1}/${null}}/${null}") }
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Add,

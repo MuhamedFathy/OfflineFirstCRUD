@@ -11,7 +11,11 @@ import com.github.offlinefirstcrud.domain.model.PostEntity
 import com.github.offlinefirstcrud.domain.repositories.PostsRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onErrorResume
 import javax.inject.Inject
 
 class PostsRepositoryImpl @Inject constructor(
@@ -46,9 +50,10 @@ class PostsRepositoryImpl @Inject constructor(
             }
     }
 
-    override suspend fun updatePost(postId: Int, post: PostEntity): Flow<List<PostEntity>> {
+    override suspend fun updatePost(post: PostEntity): Flow<List<PostEntity>> {
         if (context.isNetworkAvailable()) {
-            postsRemoteDS.updatePost(postId, post.toResponse())
+            postsRemoteDS.updatePost(post.id, post.toResponse())
+                .catch { emitAll(flow { postsLocalDS.updatePost(post.toDBEntity()) }) }
                 .collect { postsLocalDS.updatePost(post.toDBEntity()) }
         } else {
             postsLocalDS.updatePost(post.toDBEntity())
