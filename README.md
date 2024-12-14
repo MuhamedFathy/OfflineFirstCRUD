@@ -1,7 +1,7 @@
 # OfflineFirstCRUD
 
 A simple Android application created with [JSONPlaceholder](https://jsonplaceholder.typicode.com) for demonstrating CRUD
-operations with offline-first functionality. The app leverages RoomDB for local storage and WorkManager for synchronizing data with the
+operations with offline-first functionality. The app built using Jetpack Compose, Kotlin Coroutines, and implementing a clean architecture approach with the MVVM (Model-View-ViewModel) pattern RoomDB for local storage and WorkManager for synchronizing data with the
 JSONPlaceholder API.
 
 ## Table of Contents
