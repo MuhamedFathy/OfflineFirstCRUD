@@ -47,7 +47,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.github.offlinefirstcrud.R
 import com.github.offlinefirstcrud.domain.typealiases.Consumer
 import com.github.offlinefirstcrud.presentation.activity.MainActivity
-import com.github.offlinefirstcrud.presentation.composable.navigation.NavRoutes
 import com.github.offlinefirstcrud.presentation.holder.DataHolder
 import com.github.offlinefirstcrud.presentation.theme.OfflineFirstCRUDTheme
 import com.github.offlinefirstcrud.presentation.viewmodel.uimodel.PostUiModel
