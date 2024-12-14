@@ -17,6 +17,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -29,7 +30,6 @@ import com.github.offlinefirstcrud.presentation.theme.OfflineFirstCRUDTheme
 import com.github.offlinefirstcrud.presentation.viewmodel.PostsViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
-@OptIn(ExperimentalMaterial3Api::class)
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
@@ -38,53 +38,59 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContent {
-            val navController = rememberNavController()
-            val backStackEntry by navController.currentBackStackEntryAsState()
-            val currentRoute = backStackEntry?.destination?.route
+        setContent { InitiateApp() }
 
-            OfflineFirstCRUDTheme {
-                Scaffold(
-                    topBar = {
-                        CenterAlignedTopAppBar(
-                            title = {
-                                val title = getScreenTitle(currentRoute)
-                                Text(
-                                    text = if (title == null) "" else stringResource(title),
-                                    style = MaterialTheme.typography.titleLarge
-                                )
-                            },
-                            navigationIcon = {
-                                if (currentRoute != NavRoutes.PostsScreen.route) {
-                                    IconButton(onClick = { navController.popBackStack() }) {
-                                        Icon(
-                                            Icons.AutoMirrored.Filled.ArrowBack,
-                                            contentDescription = "Back"
-                                        )
-                                    }
-                                }
-                            }
+        postsViewModel.syncPosts()
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun InitiateApp() {
+    val navController = rememberNavController()
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = backStackEntry?.destination?.route
+
+    OfflineFirstCRUDTheme {
+        Scaffold(
+            topBar = {
+                CenterAlignedTopAppBar(
+                    title = {
+                        val title = getScreenTitle(currentRoute)
+                        Text(
+                            text = if (title == null) "" else stringResource(title),
+                            style = MaterialTheme.typography.titleLarge
                         )
                     },
-                    floatingActionButton = {
-                        if (currentRoute == NavRoutes.PostsScreen.route) {
-                            FloatingActionButton(
-                                onClick = { navController.navigate("${NavRoutes.CreatePostScreen.route}/${-1}/${null}}/${null}") }
-                            ) {
+                    navigationIcon = {
+                        if (currentRoute != NavRoutes.PostsScreen.route) {
+                            IconButton(onClick = { navController.popBackStack() }) {
                                 Icon(
-                                    imageVector = Icons.Default.Add,
-                                    contentDescription = "Add Post"
+                                    Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = "Back"
                                 )
                             }
                         }
                     }
-                ) { contentPadding ->
-                    AppNavHost(
-                        modifier = Modifier.padding(contentPadding),
-                        navController = navController
-                    )
+                )
+            },
+            floatingActionButton = {
+                if (currentRoute == NavRoutes.PostsScreen.route) {
+                    FloatingActionButton(
+                        onClick = { navController.navigate("${NavRoutes.CreatePostScreen.route}/${-1}/${null}}/${null}") }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "Add Post"
+                        )
+                    }
                 }
             }
+        ) { contentPadding ->
+            AppNavHost(
+                modifier = Modifier.padding(contentPadding),
+                navController = navController
+            )
         }
     }
 }
